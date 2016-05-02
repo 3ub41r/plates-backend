@@ -18,6 +18,9 @@ $container['db'] = function ($c) {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
+    $pdo->exec('DROP TABLE IF EXISTS student');
+    $pdo->exec('DROP TABLE IF EXISTS vehicle');
+
     // Create tables
     $pdo->exec('
         CREATE TABLE IF NOT EXISTS student (
