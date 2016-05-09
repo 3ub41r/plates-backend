@@ -24,7 +24,9 @@ $container['db'] = function ($c) {
         id INTEGER PRIMARY KEY,
         name TEXT,
         matric_no TEXT,
-        ic_number TEXT)
+        ic_number TEXT,
+        address TEXT,
+        phone_num INTEGER)
         ');
 
     $pdo->exec('
@@ -33,29 +35,33 @@ $container['db'] = function ($c) {
         plate_number TEXT,
         type TEXT,
         color TEXT,
+        chasis_num TEXT,
+        model TEXT,
         student_id INTEGER)
         ');
 
     // Insert some data
     $sql = '
     INSERT INTO student 
-    (name, matric_no, ic_number) 
+    (name, matric_no, ic_number, address, phone_num) 
     VALUES 
-    (?, ?, ?)
+    (?, ?, ?, ?, ?)
     ';
     $stmt = $pdo->prepare($sql);
-    $stmt->execute(['Ahmad', 'SX312123123', '900401715132']);
+    $stmt->execute(['Ahmad', 'SX312123123', '900401715132', 'Taman Desa', '0104149423']);
+    $stmt->execute(['Abu', 'Ai130080', '940211015246', 'Taman Intan', '0127414535']);
 
     $student_id = $pdo->lastInsertId();
 
     $sql = '
     INSERT INTO vehicle 
-    (plate_number, type, color, student_id) 
+    (plate_number, type, color, chasis_num, model, student_id) 
     VALUES 
-    (?, ?, ?, ?)
+    // (?, ?, ?, ?, ?, ?)
     ';
     $stmt = $pdo->prepare($sql);
-    $stmt->execute(['BJY6688', 'Car', 'Black', $student_id]);
+    $stmt->execute(['BJY6688', 'Car', 'Black', 'NF5123125666', 'FN2345', $student_id]);
+    $stmt->execute(['WAJ4', 'Car', 'Black', 'NF512546226', 'VB2522', $student_id]);
 
     return $pdo;
 };
