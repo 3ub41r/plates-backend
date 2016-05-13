@@ -14,7 +14,14 @@ $app = new \Slim\App(['settings' => $config]);
 $container = $app->getContainer();
 
 $container['db'] = function ($c) {
-    $pdo = new PDO('sqlite:../../sql/students.sqlite');
+    $db_path = '../../sql';
+    $db_file = 'students.sqlite';
+
+    if (!file_exists($db_path)) {
+        mkdir($db_path, 0777, true);
+    }
+
+    $pdo = new PDO("sqlite:$db_path/$db_file");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
@@ -60,7 +67,7 @@ $container['db'] = function ($c) {
     INSERT INTO vehicle 
     (plate_number, type, color, chasis_num, model, student_id) 
     VALUES 
-    // (?, ?, ?, ?, ?, ?)
+    (?, ?, ?, ?, ?, ?)
     ';
     $stmt = $pdo->prepare($sql);
     $stmt->execute(['BJY6688', 'Car', 'Black', 'NF5123125666', 'FN2345', $student_id]);
