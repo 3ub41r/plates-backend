@@ -11,8 +11,18 @@ $config['displayErrorDetails'] = true;
 
 $app = new \Slim\App(['settings' => $config]);
 
+// Get IOC Container
 $container = $app->getContainer();
 
+// Inject logger
+$container['logger'] = function($c) {
+    $logger = new \Monolog\Logger('my_logger');
+    $file_handler = new \Monolog\Handler\StreamHandler('../../logs/app.log', Logger::DEBUG);
+    $logger->pushHandler($file_handler);
+    return $logger;
+};
+
+// Inject Database
 $container['db'] = function ($c) {
     $db_path = '../../sql';
     $db_file = 'students.sqlite';
@@ -52,9 +62,9 @@ $container['db'] = function ($c) {
 
     // Insert some data
     $sql = '
-    INSERT INTO student 
-    (name, matric_no, ic_number, address, phone_num) 
-    VALUES 
+    INSERT INTO student
+    (name, matric_no, ic_number, address, phone_num)
+    VALUES
     (?, ?, ?, ?, ?)
     ';
     $stmt = $pdo->prepare($sql);
@@ -64,9 +74,9 @@ $container['db'] = function ($c) {
     $student_id = $pdo->lastInsertId();
 
     $sql = '
-    INSERT INTO vehicle 
-    (plate_number, type, color, chasis_num, model, student_id) 
-    VALUES 
+    INSERT INTO vehicle
+    (plate_number, type, color, chasis_num, model, student_id)
+    VALUES
     (?, ?, ?, ?, ?, ?)
     ';
     $stmt = $pdo->prepare($sql);
@@ -76,21 +86,17 @@ $container['db'] = function ($c) {
     return $pdo;
 };
 
-$app->get('/hello/{name}', function (Request $request, Response $response) {
-    $name = $request->getAttribute('name');
-    $response->getBody()->write("Hello, $name");
-
-    return $response;
-});
-
+// End-point for plate recognition
 $app->post('/recognize', function (Request $request, Response $response) {
+    $this->logger->addInfo('Getting plate number from API.');
     $plate = new PlateRecognition($_FILES, 'image');
     $plate_number = $plate->get_plate_number();
 
     if ($plate_number) {
+        $this->logger->addInfo("Looking up plate number ($plate_number) in database.");
         // Look up student's vehicle
         $sql = '
-        SELECT * FROM vehicle a 
+        SELECT * FROM vehicle a
         JOIN student b on b.id = a.student_id
         WHERE plate_number = ?
         ';
@@ -98,8 +104,9 @@ $app->post('/recognize', function (Request $request, Response $response) {
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$plate_number]);
         $student = $stmt->fetch();
-        
+
         if ($student) {
+            $this->logger->addInfo("Plate number found in database.", $student);
             return $response->withJson($student);
         }
     }
