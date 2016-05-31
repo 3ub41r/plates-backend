@@ -1,3 +1,4 @@
 src/vendor/*
 uploads/*
 sql/*
+logs/*
